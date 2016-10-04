@@ -94,7 +94,6 @@ def respond(sock):
 	if len(parts) > 1 and parts[0] == "GET":
 		try:	
 			f = open("./pages" + path, 'r')
-			transmit(STATUS_OK, sock)
 			transmit(f.read(), sock)
 		except FileNotFoundError:
 			transmit(STATUS_NOT_FOUND, sock)
