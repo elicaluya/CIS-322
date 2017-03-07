@@ -19,7 +19,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#define PORT "3490"  // the port users will be connecting to
+#define PORT "8000"  // the port users will be connecting to
 
 #define BACKLOG 10     // how many pending connections queue will hold
 
@@ -110,11 +110,12 @@ int main(void)
     
     printf("server: waiting for connections...\n");
     
+    // Data array for clients that connect to server
     char **data_array = malloc(1 * sizeof(*data_array));
     for (int i = 0; i < INET6_ADDRSTRLEN; i++){
         data_array[i] = malloc(INET6_ADDRSTRLEN * sizeof(char));
     }
-    int count = 1;
+    int count = 0;
     
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
@@ -135,21 +136,27 @@ int main(void)
         // Reallocate array for new addresses that connected
         data_array = realloc(data_array, count * sizeof(*data_array));
         
+        // Add address that just connected to the list
         data_array[count-1] = malloc(INET6_ADDRSTRLEN * sizeof(char));
         strcpy(data_array[count-1], s);
         
+        // Print out contents in list
+        puts("Contents in list:");
         for (int i = 0; i < count; i++){
-            printf("In list: %s\n", data_array[i]);
+            printf("%d) %s\n", i+1, data_array[i]);
         }
         
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
+            
+            // Deallocate memory for array
             for (int i = 0; i < count; i++){
                 char* ptr = data_array[i];
                 free(ptr);
-                send(new_fd, data_array[i], INET6_ADDRSTRLEN, 0);
             }
             
+            // Send fake message to client
+            send(new_fd, "Bencoded message", 16, 0);
             
             close(new_fd);
             exit(0);
